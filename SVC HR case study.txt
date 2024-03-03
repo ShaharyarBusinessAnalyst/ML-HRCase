@@ -1,0 +1,62 @@
+import numpy as np
+import pandas as pd
+from sklearn import svm
+import matplotlib as plt
+import seaborn as sns
+
+#show graphics in below on browser
+%matplotlib inline
+
+job_decision = pd.read_excel("C:\Personal\ML\HR Analytics Data.xlsx", sheet_name='Data')
+print(job_decision.head())
+
+#scatter plot data
+sns.lmplot(x= 'Percent difference CTC',y= 'Duration to accept offer', data = job_decision,
+    hue = 'Status', palette = 'Set1',  fit_reg=False, scatter_kws={"s":70});
+
+#calculating number of nan values in columns
+job_decision['Duration to accept offer'].isna().sum()
+job_decision['Percent difference CTC'].isna().sum()
+
+#replacing missing values with mode
+duration_mode = job_decision['Duration to accept offer'].fillna(job_decision['Duration to accept offer'].mode()[0],inplace = True)
+duration_mode = job_decision['Percent difference CTC'].fillna(job_decision['Percent difference CTC'].mode()[0],inplace = True)
+job_decision['Percent difference CTC'].isna().sum()
+
+#converting Status column from categorical to binary 
+type_label = np.where(job_decision['Status']=='Joined',1,0)
+print(type_label)
+#getting column labels
+jd_features = job_decision.columns.values[1:].tolist()
+factors = job_decision[['Duration to accept offer','Percent difference CTC']].values
+print(factors)
+
+#fit model (svm classification)
+model = svm.SVC(kernel = 'linear')
+model.fit(factors,type_label)
+
+#plot the hyperplane
+w = model.coef_[0]
+a = -w[0]/w[1]
+xx = np.linspace(30,60)
+y = a * xx - (model.intercept_[0]) / w[1]
+print(yy)
+
+#plot the parallels to hyperplane
+b = model.support_vectors_[0]
+yy_down = a**xx + (b[1] - a*b[0])
+b = model.support_vectors_[-1]
+yy_up = a*xx + (b[1] - a*b[0])
+
+#scatter plot data
+sns.lmplot(x = 'Percent difference CTC',y= 'Duration to accept offer', data = job_decision,
+    hue = 'Status', palette = 'Set1',  fit_reg=False, scatter_kws={"s":70})
+plt.plot(xx, yy, linewidth = 2, color = 'black')
+plt.plot(xx,yy_down,'k--')
+plt.plot(xx,yy_up,'k--')
+
+def status_joined(Percent difference CTC , Duration to accept offer):
+    if(model.predict([[Percent difference CTC , Duration to accept offer]]))==0:
+        print('Joined the company')
+    else
+        print('Not joined the company')
